@@ -83,9 +83,14 @@ func initCache() {
 		DB:       db,
 	})
 
-	if err := globals.RedisClient.Ping(context.TODO()).Err(); err != nil {
-		logger.Logger.Sugar().Fatalf("redis connect error: %s", err)
-		os.Exit(1)
+	for {
+		if err := globals.RedisClient.Ping(context.TODO()).Err(); err != nil {
+			logger.Logger.Sugar().Errorf("redis connect error: %s, retry after 30s", err)
+			time.Sleep(time.Second * 30)
+		} else {
+			logger.Logger.Sugar().Infof("redis connect success")
+			break
+		}
 	}
 }
 
