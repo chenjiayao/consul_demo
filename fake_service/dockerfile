@@ -1,0 +1,18 @@
+FROM golang:1.17 AS build_base
+
+WORKDIR /tmp/fake_service
+
+COPY . .
+
+RUN GOPROXY=https://goproxy.io,direct go mod download
+
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o bin/fake_service ./
+
+FROM alpine:3.14
+
+WORKDIR /app
+
+COPY --from=build_base /tmp/fake_service/bin/fake_service /app/fake_service
+
+CMD ["/app/fake_service", "-c", "/app/development.ini"]

@@ -1,0 +1,18 @@
+FROM golang:1.17 AS build_base
+
+WORKDIR /tmp/upstream_service
+
+COPY . .
+
+RUN GOPROXY=https://goproxy.io,direct go mod download
+
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o bin/upstream_service ./
+
+FROM alpine:3.14
+
+WORKDIR /app
+
+COPY --from=build_base /tmp/upstream_service/bin/upstream_service /app/upstream_service
+
+CMD ["/app/upstream_service", "-c", "/app/development.ini"]
